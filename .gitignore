@@ -1,0 +1,10 @@
+*~
+*.pyc
+*.csv
+*.log
+*.h5
+*.hdf5
+log
+__pycache__
+.ipynb_checkpoints
+
