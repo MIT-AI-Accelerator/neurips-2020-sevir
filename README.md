@@ -53,14 +53,14 @@ python test_synrad.py  models/synrad_mse.h5 data/interim/synrad_testing.h5 test_
 
 This section describes how to train the `nowcast` and `synrad` models yourself.   For the paper, these model were trained using distributed learning over 8 GPUs, however the code in this repo is setup to train on a single GPU.  
 
-The training datasets are pretty large, and running on the full dataset requires a significant amount of RAM.  It is advise to first test the model with `--numtrain` set to a low number to start, and increase this to the limits of your system.  Training with all the data may require writing your own generator that batches the data so that it fits in memory.  
+The training datasets are pretty large, and running on the full dataset requires a significant amount of RAM.  It is advise to first test the model with `--num_train` set to a low number to start, and increase this to the limits of your system.  Training with all the data may require writing your own generator that batches the data so that it fits in memory.  
 
 ### Training `nowcast`
 
 
 ### Training `synrad`
 
-To train `synrad`, make sure the `synrad_training.h5` file is created using the previous step above.  Below we set `numtrain` to be only 10,000, but this should be increased for better results.  There are three choices of loss functions configured:  
+To train `synrad`, make sure the `synrad_training.h5` file is created using the previous step above.  Below we set `num_train` to be only 10,000, but this should be increased for better results.  There are three choices of loss functions configured:  
 
 MSE Loss:
 ```
