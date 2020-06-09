@@ -22,7 +22,7 @@ To visualize results with statelines as is done in the paper, a geospatial plott
 
 ## Downloading SEVIR
 
-The SEVIR data will be available online.   Link removed from this README to maintain anonymity.
+The SEVIR data is available online.   Link removed from this README to maintain anonymity during review process.
 
 
 ## Extrating training/testing datasets
