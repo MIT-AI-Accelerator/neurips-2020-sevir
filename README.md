@@ -6,7 +6,7 @@ Code for NeurIPS 2020 SEVIR paper
 
 To test pretrained models, this requires
 
-* `tensorflow >2.1.0`
+* `tensorflow 2.1.0` or higher
 * `pandas`
 * `matplotlib`
 
