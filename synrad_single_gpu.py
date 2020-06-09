@@ -151,17 +151,11 @@ def train(model, data, batch_size, num_epochs, loss_fn, loss_weights, callbacks,
                          outputs=len(loss_fn)*[data[1]['vil']],batch_size=batch_size)
     val_gen   = generate(inputs=[data[2]['ir069'],data[2]['ir107'],data[2]['lght']],
                          outputs=len(loss_fn)*[data[3]['vil']],batch_size=batch_size)
-    
-    train_dataset = tf.data.Dataset.from_generator(lambda : train_gen,
-                                                   output_types=((tf.float32,tf.float32,tf.float32), 
-                                                                 (tf.float32,) ),
-                                                   output_shapes=( ((None,192,192,1),(None,192,192,1),(None,48,48,1)),
-                                                                   ((None,384,384,1),) ))
-    val_dataset   = tf.data.Dataset.from_generator(lambda : val_gen,
-                                                   output_types=((tf.float32,tf.float32,tf.float32), 
-                                                                 (tf.float32,) ),
-                                                   output_shapes=( ((None,192,192,1),(None,192,192,1),(None,48,48,1)),
-                                                                   ((None,384,384,1),) ))
+
+    types  = ((tf.float32,tf.float32,tf.float32),  len(loss_fn)*(tf.float32,) )
+    shapes = ( ((None,192,192,1),(None,192,192,1),(None,48,48,1)), len(loss_fn)*((None,384,384,1),) ) 
+    train_dataset = tf.data.Dataset.from_generator(lambda : train_gen, output_types=types, output_shapes=shapes)
+    val_dataset   = tf.data.Dataset.from_generator(lambda : val_gen, output_types=types, output_shapes=shapes)
 
     y = model.fit(train_dataset,
                   epochs=num_epochs,
