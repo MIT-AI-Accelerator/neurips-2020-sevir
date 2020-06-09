@@ -1,5 +1,5 @@
 # NeurIPS 2020 SEVIR
-Code for NeurIPS 2020 SEVIR paper
+Code for SEVIR paper submitted to NeurIPS 2020
 
 
 ## Requirements
@@ -49,8 +49,35 @@ Pretrained models used in the paper are located under `models/`.  To run test me
 python test_synrad.py  models/synrad_mse.h5 data/interim/synrad_testing.h5 test_output.csv
 ```
 
-## Training the `nowcast`/`synrad` models
+## Model training
 
+This section describes how to train the `nowcast` and `synrad` models yourself.   For the paper, these model were trained using distributed learning over 8 GPUs, however the code in this repo is setup to train on a single GPU.  
+
+The training datasets are pretty large, and running on the full dataset requires a significant amount of RAM.  It is advise to first test the model with `--numtrain` set to a low number to start, and increase this to the limits of your system.  Training with all the data may require writing your own generator that batches the data so that it fits in memory.  
+
+### Training `nowcast`
+
+
+### Training `synrad`
+
+To train `synrad`, make sure the `synrad_training.h5` file is created using the previous step above.  Below we set `numtrain` to be only 10,000, but this should be increased for better results.  There are three choices of loss functions configured:  
+
+MSE Loss:
+```
+python train_synrad.py   --num_train 10000  --nepochs 100  --loss_fn  mse  --loss_weights 1.0  --logdir logs/mse_`date +yymmddHHMMSS`
+```
+
+MSE+Content Loss:
+```
+python train_synrad.py   --num_train 10000  --nepochs 100  --loss_fn  mse+vgg  --loss_weights 1.0 1.0 --logdir logs/mse_vgg_`date +yymmddHHMMSS`
+```
+
+cGAN + MAE Loss:
+```
+python train_synrad.py   --num_train 10000  --nepochs 100  --loss_fn  gan+mae  --loss_weights 1.0 --logdir logs/gan_mae_`date +yymmddHHMMSS`
+```
+
+Each of these will write several files into the date-stamped directory in `logs/`, including tracking of metrics, and a model saved after each epoch.  
 
 ## Analyzing results
 
