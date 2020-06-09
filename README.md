@@ -22,9 +22,8 @@ To visualize results with statelines as is done in the paper, a geospatial plott
 
 ## Downloading SEVIR
 
-The SEVIR data will be avaialbe online.   Link removed from this README to maintain anonymity.
+The SEVIR data will be available online.   Link removed from this README to maintain anonymity.
 
-For the remainder, we assume SEVIR is downloaded or linked under the `data/` directory in the repo.
 
 ## Extrating training/testing datasets
 
