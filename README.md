@@ -51,7 +51,7 @@ python test_synrad.py  models/synrad_mse.h5 data/interim/synrad_testing.h5 test_
 
 ## Model training
 
-This section describes how to train the `nowcast` and `synrad` models yourself.   For the paper, these model were trained using distributed learning over 8 GPUs, however the code in this repo is setup to train on a single GPU.  
+This section describes how to train the `nowcast` and synthetic weather radar (`synrad`) models yourself.   For the paper, these model were trained using distributed learning over 8 GPUs, however the code in this repo is setup to train on a single GPU.  
 
 The training datasets are pretty large, and running on the full dataset requires a significant amount of RAM.  It is advise to first test the model with `--num_train` set to a low number to start, and increase this to the limits of your system.  Training with all the data may require writing your own generator that batches the data so that it fits in memory.  
 
