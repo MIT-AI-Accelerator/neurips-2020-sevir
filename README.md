@@ -44,6 +44,21 @@ python make_nowcast_dataset.py --sevir_data ../../data/sevir --sevir_catalog ../
 python make_synrad_dataset.py --sevir_data ../../data/sevir --sevir_catalog ../../data/CATALOG.csv --output_location ../../data/interim/
 ```
 
+## Testing pretrained models
+
+Pretrained models used in the paper are located under `models/`.  To run test metrics on these datasets, run the `test_*.py` scripts and point to the pretrained model, and the test dataset.  This shows an example
+
+```
+# Test a trained synrad model
+python test_synrad.py  models/synrad_mse.h5 data/interim/synrad_testing.h5 test_output.csv
+```
+
+## Training the `nowcast`/`synrad` models
+
+
+## Analyzing results
+
+The notebooks under `notebooks` contain code for anaylzing the results of training, and for visualizing the results on sample test cases.
 
 
 
