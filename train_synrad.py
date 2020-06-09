@@ -3,10 +3,12 @@ sys.path.append('src/')
 
 import os
 import time
+import datetime
 import logging
 import argparse
 import numpy as np
 from socket import gethostname
+import csv
 
 import tensorflow as tf
 from tensorflow.keras import models,optimizers
@@ -18,14 +20,16 @@ from cbhelpers.custom_callbacks import save_predictions,make_callback_dirs
 from readers.synrad_reader import get_data
 from metrics import probability_of_detection,success_rate,critical_success_index
 from losses.vggloss import VGGLoss # VGG 19 content loss
-
+from utils.trainutils import train_step
 from readers.normalizations import zscore_normalizations as NORM
 from utils.utils import default_args,setuplogging,log_args,print_args
+from models.synrad_gan import generator,discriminator
+from losses.gan_losses import generator_loss,discriminator_loss
 
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--loss_fn', type=str, default='mse', choices=['mse', 'mse+vgg'])
+    parser.add_argument('--loss_fn', type=str, default='mse', choices=['mse', 'mse+vgg','gan+mae'])
     parser.add_argument('--loss_weights', nargs='+', default="1.0")
     parser.add_argument('--train_data', type=str, help='path to training data file',default='data/interim/synrad_training.h5')
     parser.add_argument('--nepochs', type=int, help='number of epochs', default=5)    
@@ -144,6 +148,7 @@ def generate(inputs,outputs=None,batch_size=32, shuffle=True):
                 yield tuple(inputs_batch)
 
 
+
 def train(model, data, batch_size, num_epochs, loss_fn, loss_weights, callbacks, verbosity):
     logging.info('training...')
     t0 = time.time()
@@ -170,11 +175,91 @@ def train(model, data, batch_size, num_epochs, loss_fn, loss_weights, callbacks,
     return
 
 
+
+
+def train_gan(data,args):
+    """
+    main for GAN case
+    """
+    global_rank=0 # we are assuming 1 GPU
+    num_data = data[1]['vil'].shape[0]
+    
+    tensorboard_dir = os.path.join(args.logdir, 'tensorboard')
+    images_dir = os.path.join(args.logdir, 'images')
+    weights_dir = os.path.join(args.logdir, 'weights')
+    summary_file = os.path.join(tensorboard_dir, datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+
+    # only rank 0 should do this
+    if global_rank == 0:
+        logging.info(f'rank {global_rank} creating directories')
+        make_callback_dirs(tensorboard_dir,images_dir,weights_dir)       
+        summary_writer = tf.summary.create_file_writer(summary_file)
+        # only rank 0 will write the metrics file
+        csv_file = open(os.path.join(args.logdir, 'metrics.csv'), 'w')
+        writer = csv.writer(csv_file)
+        writer.writerow(['gen_total_loss','gen_gan_loss','gen_l1_loss','disc_loss'])
+        # read data for visualizing intermediate outputs
+        #viz_IN, viz_OUT = get_viz_inputs()
+    else:
+        viz_IN = None
+        viz_OUT = None
+        summary_writer = None
+    
+    # instantiate models
+    g = generator(NORM)
+    d = discriminator()
+
+    # optimizers
+    g_opt = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+    d_opt = tf.keras.optimizers.Adam(2e-4, beta_1=0.5)
+    
+    logging.info('training')
+    start = time.time()
+    for epoch in range(args.nepochs):
+
+        t0 = time.time()
+        # iterate over the data in batches
+        for idx in range(0, num_data, args.batch_size):
+            # take a batch of data and train
+            #input_image = data[0][idx:idx+args.batch_size,::]
+            input_image = [data[0]['ir069'][idx:idx+args.batch_size,::],
+                           data[0]['ir107'][idx:idx+args.batch_size,::],
+                           data[0]['lght'][idx:idx+args.batch_size,::]]
+            target = data[1]['vil'][idx:idx+args.batch_size,::]
+            losses = train_step(g, g_opt, d, d_opt, input_image, target, epoch, summary_writer)
+
+        # write stats at the end of the epoch
+        if global_rank==0:
+            #gen_total_loss,gen_gan_loss,gen_l1_loss,disc_loss
+            losses = [L.numpy() for L in losses]
+            writer.writerow(losses)
+            csv_file.flush() # to ensure that each line is written as we go along
+
+            # since we write our own training loop, there is no concept of callbacks
+            # this is the end of one epoch - here we can run on the test/val data and generate
+            g.save(os.path.join(weights_dir, f'trained_generator-{epoch}.h5'))
+            d.save(os.path.join(weights_dir, f'trained_discriminator-{epoch}.h5'))
+
+        T = time.time()-t0
+        logging.info(f'epoch {epoch} - {T} sec. - gen_loss : {losses[0]} - disc_loss : {losses[-1]}')
+    
+    logging.info('training time : {time.time()-start sec.}')
+    if global_rank==0:
+        csv_file.close()
+    return
+
+
 def main(args):
-    model,loss_fn,loss_weights = get_model(args)
-    callbacks = get_callbacks(model, args.logdir)
     data      = get_data(args.train_data, end=args.num_train )
-    train(model, data, args.batch_size, args.nepochs, loss_fn, loss_weights, callbacks, args.verbosity) 
+
+    if args.loss_fn in ['gan+mae']: # gan case has custom train loop
+        train_gan(data,args)
+    else: # non-gan case
+        model,loss_fn,loss_weights = get_model(args)
+        callbacks = get_callbacks(model, args.logdir)
+        train(model, data, args.batch_size, args.nepochs, 
+              loss_fn, loss_weights, callbacks, args.verbosity) 
+    
     return
 
 
