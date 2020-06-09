@@ -49,7 +49,7 @@ def get_callbacks(model, logdir ):
     tensorboard_dir = os.path.join(logdir, 'tensorboard')
     imgs_dir = os.path.join(logdir, 'images')
     weights_dir = os.path.join(logdir, 'weights')
-    metrics_file = os.path.join(logdir, 'train.log')
+    metrics_file = os.path.join(logdir, 'metrics.csv')
 
     logging.info(f'tensorboard dir : {tensorboard_dir}')
     logging.info(f'image dir : {imgs_dir}')
@@ -265,6 +265,8 @@ def main(args):
 
 if __name__ == '__main__':
     args = get_args()
+    if not os.path.exists(args.logdir):
+        os.mkdir(args.logdir)
     setuplogging(os.path.join(args.logdir, f'0.log'))
     log_args(args)
     logging.info(f'Host: {gethostname()}')

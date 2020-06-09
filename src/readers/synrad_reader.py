@@ -26,7 +26,7 @@ def get_data(train_data, pct_validation=0.2, rank=0, size=1, end=None ):
     return (train_IN,train_OUT,val_IN,val_OUT)
 
 
-def read_data(filename, rank, size, end=None,dtype=np.float32):
+def read_data(filename, rank=0, size=1, end=None,dtype=np.float32):
     x_keys = ['ir069','ir107','lght']
     y_keys = ['vil']
     s = np.s_[rank:end:size]
