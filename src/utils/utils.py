@@ -72,9 +72,4 @@ def default_args():
                             default=None)
     args, unknown = parser.parse_known_args()
 
-    # for nowcast_unet 
-    #if args.model=='nowcast':
-    #    if args.loss_fn.find('vgg') > -1:
-    #        # VGG loss forces batch size to be 4
-    #        args.batch_size = 4
     return args

@@ -33,36 +33,7 @@ from utils.utils import default_args,setuplogging,log_args,print_args
 RANDOM_STATE = 1234
 
 
-def get_data(train_data, test_data, pct_validation=0.2 ):
-    logging.info('Reading datasets')
-    train_IN, train_OUT = read_data(train_data, rank=hvd.rank(), size=hvd.size(),end=None)
-    #test_IN, test_OUT   = read_data(test_data, rank=hvd.rank(), size=hvd.size(),end=500)
 
-    # Make the validation dataset the last pct_validation of the training data
-    val_idx = int((1-pct_validation)*len(train_OUT['vil']))
-    val_IN={}
-    val_OUT={}
-    for k in train_IN:
-        train_IN[k],val_IN[k]=train_IN[k][:val_idx],train_IN[k][val_idx:]
-    for k in train_OUT:
-        train_OUT[k],val_OUT[k]=train_OUT[k][:val_idx],train_OUT[k][val_idx:]
-    
-    # shuffle the datasets (in unison)
-    #logging.info('Shuffling datasets')
-    #rs = np.random.get_state()
-    #for k in train_IN:
-    #    np.random.set_state(rs)
-    #    np.random.shuffle(train_IN[k])
-    #    np.random.set_state(rs)
-    #    np.random.shuffle(val_IN[k])
-    #for k in train_IN:
-    #    np.random.set_state(rs)
-    #    np.random.shuffle(train_OUT[k])
-    #    np.random.set_state(rs)
-    #    np.random.shuffle(val_OUT[k])
-
-    logging.info('data loading completed')
-    return (train_IN,train_OUT,val_IN,val_OUT)
 
 def get_callbacks(model, logdir, num_warmup=1):
     # define callback directories
@@ -86,17 +57,14 @@ def get_callbacks(model, logdir, num_warmup=1):
 
     # define callbacks
     callbacks = [ hvd.callbacks.BroadcastGlobalVariablesCallback(0),
-                 hvd.callbacks.LearningRateWarmupCallback(warmup_epochs=num_warmup, verbose=2),
-                 hvd.callbacks.MetricAverageCallback() ]
+                  hvd.callbacks.LearningRateWarmupCallback(warmup_epochs=num_warmup, verbose=2),
+                  hvd.callbacks.MetricAverageCallback() ]
 
     if hvd.rank()==0:
         save_checkpoint = ModelCheckpoint(os.path.join(weights_dir, 'weights_{epoch:02d}.h5'),
                                           save_best=True, save_weights_only=False, mode='auto')
-        
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=tensorboard_dir)   
-
         csvwriter = tf.keras.callbacks.CSVLogger( metrics_file ) 
-
         callbacks += [save_checkpoint, tensorboard_callback, csvwriter]
 
     return callbacks
@@ -197,8 +165,6 @@ def train(model, data, batch_size, num_epochs, loss_fn, loss_weights, callbacks,
                               steps_per_epoch=75,
                               validation_data=val_gen, # WONT WORK IN TF 2.1
                               validation_steps=75,
-                             # validation_data=([data[2]['ir069'],data[2]['ir107'],data[2]['lght']], 
-                             #                   len(loss_fn)*[data[3]['vil']]),
                               callbacks=callbacks,
                               verbose=verbosity)
     t1 = time.time()
