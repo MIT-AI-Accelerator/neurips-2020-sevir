@@ -62,17 +62,17 @@ The training datasets are pretty large, and running on the full dataset requires
 
 To train `synrad`, make sure the `synrad_training.h5` file is created using the previous step above.  Below we set `num_train` to be only 10,000, but this should be increased for better results.  There are three choices of loss functions configured:  
 
-MSE Loss:
+#### MSE Loss:
 ```
 python train_synrad.py   --num_train 10000  --nepochs 100  --loss_fn  mse  --loss_weights 1.0  --logdir logs/mse_`date +yymmddHHMMSS`
 ```
 
-MSE+Content Loss:
+#### MSE+Content Loss:
 ```
 python train_synrad.py   --num_train 10000  --nepochs 100  --loss_fn  mse+vgg  --loss_weights 1.0 1.0 --logdir logs/mse_vgg_`date +yymmddHHMMSS`
 ```
 
-cGAN + MAE Loss:
+#### cGAN + MAE Loss:
 ```
 python train_synrad.py   --num_train 10000  --nepochs 100  --loss_fn  gan+mae  --loss_weights 1.0 --logdir logs/gan_mae_`date +yymmddHHMMSS`
 ```
