@@ -25,7 +25,7 @@ To visualize results with statelines as is done in the paper, a geospatial plott
 The SEVIR data is available online.   Link removed from this README to maintain anonymity during review process.
 
 
-## Extrating training/testing datasets
+## Extracting training/testing datasets
 
 The models implemented in the paper are implemented on training data collected prior to June 1, 2019, and testing data collected after June 1, 2019.  These datasets can be extrated from SEVIR by running the following scripts (one for nowcasting, and one for synrad).  Depending on your CPU and speed of your filesystem, these scripts may take several hours to run. 
 
