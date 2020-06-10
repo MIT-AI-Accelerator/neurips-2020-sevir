@@ -2,27 +2,28 @@ import os
 import h5py
 import numpy as np
 
-def read_data_legacy(filename, start=0, num_read=1, indices=None, dtype=np.float32,
-                  MEAN=33.44, SCALE=47.54, scale=True):
-    if not os.path.isfile(filename):
-        return None,None
+def get_data(train_data, test_data, num_train=1024, pct_validation=0.2, dtype=np.float32):
+    # read data: this function returns scaled data
+    # what about shuffling ? 
+    logging.info(f'rank {global_rank} reading images')
+    t0 = time.time()
+    train_IN, train_OUT = read_data(train_data, end=num_train, dtype=dtype) 
+    t1 = time.time()
+    logging.info(f'read time : {t1-t0}')
 
-    with h5py.File(filename, mode='r') as reader:
-        if indices is None:
-            indices = np.arange(start, start+num_read)
-        else:
-            indices = np.asarray(indices)
-        in_arr = reader.get('IN')
-        IN  = in_arr[indices,::].astype(dtype)
-        out_arr = reader.get('OUT')
-        OUT  = out_arr[indices,::].astype(dtype)
-    if scale:
-        IN  = (IN-MEAN)/SCALE
-        OUT = (OUT-MEAN)/SCALE
-    return IN,OUT
+    # Make the validation dataset the last pct_validation of the training data
+    val_idx = int((1-pct_validation)*train_IN.shape[0])
+    
+    val_IN = train_IN[val_idx:, ::]
+    train_IN = train_IN[:val_idx, ::]
 
-def read_data_slow(filename, rank, size, end=None, dtype=np.float32, MEAN=33.44, SCALE=47.54):
-    #MEAN=21.11, SCALE=41.78):
+    val_OUT = train_OUT[val_idx:, ::]
+    train_OUT = train_OUT[:val_idx, ::]
+
+    return (train_IN,train_OUT,val_IN,val_OUT)
+
+
+def read_data(filename, rank=0, size=1, end=None, dtype=np.float32, MEAN=33.44, SCALE=47.54):
     x_keys = ['IN']
     y_keys = ['OUT']
     s = np.s_[rank:end:size]
@@ -33,36 +34,3 @@ def read_data_slow(filename, rank, size, end=None, dtype=np.float32, MEAN=33.44,
     OUT = (OUT.astype(dtype)-MEAN)/SCALE
     return IN,OUT
 
-def read_data_v1(filename, rank, size, end=None, dtype=np.float32, MEAN=33.44, SCALE=47.54):
-    # this might be causing OOM issues
-    with h5py.File(filename, mode='r') as hf:
-        IN  = hf['IN'][:]
-        IN = IN[rank:end:size]
-        OUT = hf['OUT'][:]
-        OUT = OUT[rank:end:size]
-        
-    IN = (IN.astype(dtype)-MEAN)/SCALE
-    OUT = (OUT.astype(dtype)-MEAN)/SCALE
-    return IN,OUT
-
-def read_data_v2(filename, rank, size, end=None, dtype=np.float32, MEAN=33.44, SCALE=47.54):
-    with h5py.File(filename, mode='r') as hf:
-        IN  = hf['IN'][rank:end:size]
-        OUT = hf['OUT'][rank:end:size]
-    
-    IN = (IN.astype(dtype)-MEAN)/SCALE
-    OUT = (OUT.astype(dtype)-MEAN)/SCALE
-    return IN,OUT
-
-def read_data(filename, rank, size, end=None, dtype=np.float32, MEAN=33.44, SCALE=47.54):
-    with h5py.File(filename, mode='r') as hf:
-        n,nr,nc,nz = hf['IN'].shape
-        myfraction = n//size
-        start = myfraction*rank
-        stop = start + myfraction
-        IN  = hf['IN'][start:stop,::]
-        OUT = hf['OUT'][start:stop,::]
-    
-    IN = (IN.astype(dtype)-MEAN)/SCALE
-    OUT = (OUT.astype(dtype)-MEAN)/SCALE
-    return IN,OUT
