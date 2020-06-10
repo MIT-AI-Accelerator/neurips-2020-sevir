@@ -45,6 +45,8 @@ Pretrained models used in the paper are located under `models/`.  To run test me
 python test_synrad.py  models/synrad_mse.h5 data/interim/synrad_testing.h5 test_output.csv
 ```
 
+Also check out the examples in `notebooks/` for how to run pretrained models and visualize results.
+
 ## Model training
 
 This section describes how to train the `nowcast` and synthetic weather radar (`synrad`) models yourself.   For the paper, these model were trained using distributed learning over 8 GPUs, however the code in this repo is setup to train on a single GPU.  
