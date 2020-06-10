@@ -10,10 +10,6 @@ To test pretrained models, this requires
 * `pandas`
 * `matplotlib`
 
-The following module is used for extracting training/testing dataset from SEVIR.  This contains data readers and generators:
-
-* (removed for anonymity)
-
 To visualize results with statelines as is done in the paper, a geospatial plotting library is required.  We recommend either of the following:
 
 * `basemap`
@@ -48,6 +44,8 @@ Pretrained models used in the paper are located under `models/`.  To run test me
 # Test a trained synrad model
 python test_synrad.py  models/synrad_mse.h5 data/interim/synrad_testing.h5 test_output.csv
 ```
+
+Also check out the examples in `notebooks/` for how to run pretrained models and visualize results.
 
 ## Model training
 

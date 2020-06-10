@@ -13,7 +13,7 @@ import sys
 import datetime
 import numpy as np
 import tensorflow as tf
-from sevir.utils import SEVIRSequence
+from .utils import SEVIRSequence
 
 def get_synrad_train_generator(sevir_catalog,
                                 sevir_location,

@@ -5,7 +5,7 @@ import sys
 import numpy as np
 import tensorflow as tf
 import datetime
-from sevir.utils import SEVIRSequence
+from .utils import SEVIRSequence
 
 class NowcastGenerator(SEVIRSequence):
     """
