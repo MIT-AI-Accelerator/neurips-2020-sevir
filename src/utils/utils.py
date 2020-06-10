@@ -41,3 +41,13 @@ def log_args(args, logger_name=None):
         logger.info("{0: <15} : {1:}".format(arg, getattr(args, arg)))
     return
 
+def make_callback_dirs(tensorboard_dir, imgs_dir, weights_dir):
+    if not os.path.isdir(tensorboard_dir):
+        os.makedirs(tensorboard_dir)
+
+    if not os.path.isdir(imgs_dir):
+        os.makedirs(imgs_dir)
+
+    if not os.path.isdir(weights_dir):
+        os.makedirs(weights_dir)
+    return tensorboard_dir, imgs_dir, weights_dir
