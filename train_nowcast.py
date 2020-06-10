@@ -14,43 +14,30 @@ from tensorflow.keras.callbacks import ModelCheckpoint,LambdaCallback,TensorBoar
 from models.nowcast_unet import create_model
 from losses.style_loss import vggloss,vggloss_scaled
 from cbhelpers.custom_callbacks import make_callback_dirs
-from readers.nowcast_reader import read_data
-from utils.utils import default_args,setuplogging,log_args,print_args
+from readers.nowcast_reader import get_data
+from utils.utils import setuplogging,log_args,print_args
 from metrics import probability_of_detection,success_rate,critical_success_index
 
 MEAN=33.44
 SCALE=47.54
-global_rank = 0
-global_size = 1
 
-def get_data(train_data, test_data, num_train=None, pct_validation=0.2):
-    # read data: this function returns scaled data
-    # what about shuffling ? 
-    logging.info(f'rank {global_rank} reading images')
-    t0 = time.time()
-    train_IN, train_OUT = read_data(train_data,
-                                            rank=global_rank,
-                                            size=global_size,
-                                             end=44760) # 44760 clips in training set
-    t1 = time.time()
-    logging.info(f'read time : {t1-t0}')
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--loss_fn', type=str, default='mse', choices=['mse', 'vgg', 'mse+vgg'])
+    parser.add_argument('--loss_weights', nargs='+', default="1.0")
+    parser.add_argument('--train_data', type=str, help='path to training data file',default='data/interim/nowcast_training.h5')
+    parser.add_argument('--nepochs', type=int, help='number of epochs', default=5)    
+    parser.add_argument('--batch_size', type=int, help='batch size', default=32)
+    parser.add_argument('--num_train', type=int, help='number of training sequences to read', default=None)
+    parser.add_argument('--lr', type=float, help='learning rate', default=0.001)
+    parser.add_argument('--verbosity', type=int, default=2)
+    parser.add_argument('--logdir', type=str, help='log directory', default='./logs')
+    args, unknown = parser.parse_known_args()
 
-    # Make the validation dataset the last pct_validation of the training data
-    if pct_validation<1:
-        val_idx = int((1-pct_validation)*train_IN.shape[0])
-    else:
-        val_idx = int(train_IN.shape[0]-pct_validation)
-    
-    val_IN = train_IN[val_idx:, ::]
-    train_IN = train_IN[:val_idx, ::]
-
-    val_OUT = train_OUT[val_idx:, ::]
-    train_OUT = train_OUT[:val_idx, ::]
-
-    logging.info('data loading completed')
-    logging.info(f'rank {global_rank} train : {train_IN.shape}')
-    logging.info(f'rank {global_rank} val   : {val_IN.shape}')
-    return (train_IN,train_OUT,val_IN,val_OUT)
+    if args.loss_fn.find('vgg')>0:
+        # a smaller batch size is needed when using vgg style and content loss
+        args.batch_size = 4
+    return args
 
 def get_loss_fn(loss):
     choices = {'mse':[mean_squared_error],
@@ -68,9 +55,8 @@ def get_callbacks(model, logdir, num_warmup=1):
     logging.info(f'image dir : {imgs_dir}')
     logging.info(f'weights dir : {weights_dir}')
 
-    logging.info(f'rank {global_rank} creating directories')
+    logging.info(f'creating directories')
     tensorboard_dir,imgs_dir,weights_dir = make_callback_dirs(tensorboard_dir,imgs_dir,weights_dir)
-
 
     # define callbacks
     metrics_file = os.path.join(logdir, 'metrics.csv')
@@ -140,6 +126,11 @@ def main(args):
     model,loss_fn,loss_weights = get_model(args)
     callbacks = get_callbacks(model, args.logdir, args.num_warmup)
     data = get_data(args.train_data, args.test_data, num_train=args.num_train, pct_validation=args.num_test)
+
+    logging.info('data loading completed')
+    logging.info(f'num. train : {data[0].shape}')
+    logging.info(f'num. val   : {data[2].shape}')
+
     y = train(model, data, args.batch_size, args.nepochs, loss_fn, loss_weights, callbacks, args.verbosity)
 
     history_file = os.path.join(args.logdir, 'history.csv')
@@ -151,9 +142,10 @@ def main(args):
     return
 
 if __name__ == '__main__':
-    args = default_args()
-    # logging has to be setup after horovod init
-    setuplogging(os.path.join(args.logdir, f'{global_rank}.log'))
+    args = get_args()
+    if not os.path.exists(args.logdir):
+        os.mkdir(args.logdir)
+    setuplogging(os.path.join(args.logdir, '0.log'))
     log_args(args)
     main(args)    
     print('all done')
