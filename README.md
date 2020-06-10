@@ -10,10 +10,6 @@ To test pretrained models, this requires
 * `pandas`
 * `matplotlib`
 
-The following module is used for extracting training/testing dataset from SEVIR.  This contains data readers and generators:
-
-* (removed for anonymity)
-
 To visualize results with statelines as is done in the paper, a geospatial plotting library is required.  We recommend either of the following:
 
 * `basemap`
