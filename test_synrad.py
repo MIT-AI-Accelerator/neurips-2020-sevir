@@ -15,6 +15,7 @@ os.environ["HDF5_USE_FILE_LOCKING"]='FALSE'
 from tqdm import tqdm
 from metrics import probability_of_detection,success_rate
 from metrics.histogram import compute_histogram,score_histogram
+from metrics.lpips_metric import get_lpips
 
 from readers.synrad_reader import read_data
 
@@ -97,6 +98,9 @@ def main():
     test_scores['ssim'] = run_metric(ssim, [255], y_test['vil'], y_pred, 64)
     test_scores['mse'] = run_metric(MSE, 255, y_test['vil'], y_pred, 64)
     test_scores['mae'] = run_metric(MAE, 255, y_test['vil'], y_pred, 64)
+    from losses import lpips
+    lpips_model = lpips.PerceptualLoss(model='net-lin', net='alex', use_gpu=False, gpu_ids=[0])
+    test_scores['lpips'] = get_lpips(lpips_model,y_pred.astype(np.uint8),y_test['vil'].astype(np.uint8),n_out=1,batch_size=100)[0]
     
     # For other stats, compute histogram over the data
     H,rb,cb=run_histogram(y_test['vil'],y_pred,bins=range(255))
