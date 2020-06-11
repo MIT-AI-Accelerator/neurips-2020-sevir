@@ -44,19 +44,9 @@ def get_args():
 
 
 def get_callbacks(model, logdir ):
-    # define callback directories
-    tensorboard_dir = os.path.join(logdir, 'tensorboard')
-    imgs_dir = os.path.join(logdir, 'images')
-    weights_dir = os.path.join(logdir, 'weights')
-    metrics_file = os.path.join(logdir, 'metrics.csv')
-
-    logging.info(f'tensorboard dir : {tensorboard_dir}')
-    logging.info(f'image dir : {imgs_dir}')
-    logging.info(f'weights dir : {weights_dir}')
-
-    # only rank 0 should do this
     logging.info(f'Creating directories')
-    tensorboard_dir,imgs_dir,weights_dir = make_callback_dirs(tensorboard_dir,imgs_dir,weights_dir)
+    tensorboard_dir,imgs_dir,weights_dir = make_callback_dirs(logdir)
+    metrics_file = os.path.join(logdir, 'metrics.csv')
 
     save_checkpoint = ModelCheckpoint(os.path.join(weights_dir, 'weights_{epoch:02d}.h5'),
                                       save_best=True, save_weights_only=False, mode='auto')
