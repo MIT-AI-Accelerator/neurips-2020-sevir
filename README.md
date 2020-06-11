@@ -59,11 +59,27 @@ Also check out the examples in `notebooks/` for how to run pretrained models and
 
 ## Model training
 
-This section describes how to train the `nowcast` and synthetic weather radar (`synrad`) models yourself.   For the paper, these model were trained using distributed learning over 8 GPUs, however the code in this repo is setup to train on a single GPU.  
+This section describes how to train the `nowcast` and synthetic weather radar (`synrad`) models yourself.   For the paper, these model were trained using distributed learning over 8 NVIDIA Volta V100 GPUs with 32GB of memory, however the code in this repo is setup to train on a single GPU.  
 
 The training datasets are pretty large, and running on the full dataset requires a significant amount of RAM.  We suggest that you first test the model with `--num_train` set to a low number to start, and increase this to the limits of your system.  Training with all the data may require writing your own generator that batches the data so that it fits in memory.  
 
 ### Training `nowcast`
+To train the `nowcast` model, make sure the `nowcast_training.h5` file is created using the previous steps.  Below we set `num_train` to be only 1024, but this should be increased for better results.  Results described in the paper were generated with `num_train = 44,760`. When training the model with the ``mse`` loss, the largest batch size possible is 32 and for all other cases, a maximum batch size of 4 must be used. Larger batch sizes will result in out-of-memory errors on the GPU. There are three choices of loss functions configured:  
+
+#### MSE Loss:
+```
+python train_nowcast.py   --num_train 1024  --nepochs 25  --batch_size 32 --loss_fn  mse  --logdir logs/mse_`date +yymmddHHMMSS`
+```
+
+#### Style and Content Loss:
+```
+python train_nowcast.py   --num_train 1024  --nepochs 25  --batch_size 4 --loss_fn  vgg  --logdir logs/mse_`date +yymmddHHMMSS`
+```
+
+#### MSE + Style and Content Loss:
+```
+python train_nowcast.py   --num_train 1024  --nepochs 25  --batch_size 4 --loss_fn  mse+vgg  --logdir logs/mse_`date +yymmddHHMMSS`
+```
 
 
 ### Training `synrad`
