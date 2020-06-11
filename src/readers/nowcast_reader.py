@@ -2,10 +2,10 @@ import os
 import h5py
 import numpy as np
 
-def get_data(train_data, num_train=1024, pct_validation=0.2, dtype=np.float32):
+def get_data(train_data, end=1024, pct_validation=0.2, dtype=np.float32):
     # read data: this function returns scaled data
     # what about shuffling ? 
-    train_IN, train_OUT = read_data(train_data, end=num_train, dtype=dtype) 
+    train_IN, train_OUT = read_data(train_data, end=end, dtype=dtype) 
     # Make the validation dataset the last pct_validation of the training data
     val_idx = int((1-pct_validation)*train_IN.shape[0])
     

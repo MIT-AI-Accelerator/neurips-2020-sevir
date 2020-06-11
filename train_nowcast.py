@@ -159,7 +159,7 @@ def train_gan(data, args):
     return
 
 def main(args):
-    data = get_data(args.train_data, num_train=args.num_train)
+    data = get_data(args.train_data, end=args.num_train)
 
     logging.info('data loading completed')
     logging.info(f'num. train : {data[0].shape}')
