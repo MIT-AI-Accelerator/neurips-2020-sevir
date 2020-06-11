@@ -24,14 +24,14 @@ cd models/
 python download_models.py
 ```
 
-See the notebooks for how to load and apply this model to test data.
+See the `notebooks` directory for how to apply these models to some sample test data.
 
 ## Downloading SEVIR
 
 The SEVIR data is available online.   Link removed from this README to maintain anonymity during review process.
 
 
-## Extracting training/testing datasets
+### Extracting training/testing datasets
 
 The models implemented in the paper are implemented on training data collected prior to June 1, 2019, and testing data collected after June 1, 2019.  These datasets can be extrated from SEVIR by running the following scripts (one for nowcasting, and one for synrad).  Depending on your CPU and speed of your filesystem, these scripts may take several hours to run. 
 
@@ -45,6 +45,8 @@ python make_nowcast_dataset.py --sevir_data ../../data/sevir --sevir_catalog ../
 # Generate synrad training & testing datasets
 python make_synrad_dataset.py --sevir_data ../../data/sevir --sevir_catalog ../../data/CATALOG.csv --output_location ../../data/interim/
 ```
+
+
 
 ## Testing pretrained models
 
