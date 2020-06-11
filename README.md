@@ -15,6 +15,16 @@ To visualize results with statelines as is done in the paper, a geospatial plott
 * `basemap`
 * `cartopy`
 
+## Downloading pretrained models
+
+To Download the models trained in the paper, run the following
+
+```
+cd models/
+python download_models.py
+```
+
+See the notebooks for how to load and apply this model to test data.
 
 ## Downloading SEVIR
 
