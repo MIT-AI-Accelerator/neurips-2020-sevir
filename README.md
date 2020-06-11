@@ -4,14 +4,14 @@ Code for SEVIR paper submitted to NeurIPS 2020
 
 ## Requirements
 
-To test pretrained models, this requires
+To test pretrained models and train on single GPU, this requires
 
 * `tensorflow 2.1.0` or higher
 * `pandas`
 * `matplotlib`
 * `pytorch 1.4.0` or higher to calculate the LPIPS metric. See [Perceptual Similarity Metric and Dataset](https://github.com/richzhang/PerceptualSimilarity)
 
-Training these models also requires
+Distributed (multi-GPU) training of these models requires
 
 * `Horovod 0.19.0` or higher for distributed training. See [Horovod](https://github.com/horovod/horovod)
 
