@@ -38,11 +38,11 @@ python make_synrad_dataset.py --sevir_data ../../data/sevir --sevir_catalog ../.
 
 ## Testing pretrained models
 
-Pretrained models used in the paper are located under `models/`.  To run test metrics on these datasets, run the `test_*.py` scripts and point to the pretrained model, and the test dataset.  This shows an example
+Pretrained models used in the paper are located under `models/`.  To run test metrics on these datasets, run the `test_*.py` scripts and point to the pretrained model, and the test dataset.  To test, we recommend setting `num_test` to a small number, and increasing thereafter (not specifying will use all test data).  This shows an example
 
 ```
 # Test a trained synrad model
-python test_synrad.py  models/synrad_mse.h5 data/interim/synrad_testing.h5 test_output.csv
+python test_synrad.py  --num_test 1000 --model models/synrad_mse.h5   --test_data data/interim/synrad_testing.h5  -output test_output.csv
 ```
 
 Also check out the examples in `notebooks/` for how to run pretrained models and visualize results.
