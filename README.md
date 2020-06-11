@@ -9,6 +9,11 @@ To test pretrained models, this requires
 * `tensorflow 2.1.0` or higher
 * `pandas`
 * `matplotlib`
+* `pytorch 1.4.0` or higher to calculate the LPIPS metric. See [Perceptual Similarity Metric and Dataset](https://github.com/richzhang/PerceptualSimilarity)
+
+Training these models also requires
+
+* `Horovod 0.19.0` or higher for distributed training. See [Horovod](https://github.com/horovod/horovod)
 
 To visualize results with statelines as is done in the paper, a geospatial plotting library is required.  We recommend either of the following:
 
@@ -61,7 +66,7 @@ Also check out the examples in `notebooks/` for how to run pretrained models and
 
 ## Model training
 
-This section describes how to train the `nowcast` and synthetic weather radar (`synrad`) models yourself.   For the paper, these model were trained using distributed learning over 8 NVIDIA Volta V100 GPUs with 32GB of memory, however the code in this repo is setup to train on a single GPU.  
+This section describes how to train the `nowcast` and synthetic weather radar (`synrad`) models yourself.   Models discussed in the paper were trained using distributed training over 8 NVIDIA Volta V100 GPUs with 32GB of memory. However the code in this repo is setup to train on a single GPU.  
 
 The training datasets are pretty large, and running on the full dataset requires a significant amount of RAM.  We suggest that you first test the model with `--num_train` set to a low number to start, and increase this to the limits of your system.  Training with all the data may require writing your own generator that batches the data so that it fits in memory.  
 
