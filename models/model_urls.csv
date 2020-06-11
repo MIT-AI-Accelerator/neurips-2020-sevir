@@ -1,8 +1,8 @@
-application, model, url
-synrad, gan_mae_weights.h5, https://www.dropbox.com/s/d1e2p36nu4sqq7m/gan_mae_weights.h5?dl=0
-synrad, mse_vgg_weights.h5, https://www.dropbox.com/s/a39ig25nxkrmbkx/mse_vgg_weights.h5?dl=0
-synrad, mse_weights.h5, https://www.dropbox.com/s/6cqtrv2yliwcyh5/mse_weights.h5?dl=0
-nowcast, gan_generator.h5, https://www.dropbox.com/s/9y3m4axfc3ox9i7/gan_generator.h5?dl=0
-nowcast, mse_and_style.h5, https://www.dropbox.com/s/lqpro9dks5rykxk/mse_and_style.h5?dl=0
-nowcast, style_model.h5, https://www.dropbox.com/s/yrfx3t3nckaofqu/style_model.h5?dl=0
-nowcast, mse_model.h5, https://www.dropbox.com/s/95vmmlci5x3acar/mse_model.h5?dl=0
+application,model,url
+synrad,gan_mae_weights.h5,https://www.dropbox.com/s/d1e2p36nu4sqq7m/gan_mae_weights.h5?dl=0
+synrad,mse_vgg_weights.h5,https://www.dropbox.com/s/a39ig25nxkrmbkx/mse_vgg_weights.h5?dl=0
+synrad,mse_weights.h5,https://www.dropbox.com/s/6cqtrv2yliwcyh5/mse_weights.h5?dl=0
+nowcast,gan_generator.h5,https://www.dropbox.com/s/9y3m4axfc3ox9i7/gan_generator.h5?dl=0
+nowcast,mse_and_style.h5,https://www.dropbox.com/s/lqpro9dks5rykxk/mse_and_style.h5?dl=0
+nowcast,style_model.h5,https://www.dropbox.com/s/yrfx3t3nckaofqu/style_model.h5?dl=0
+nowcast,mse_model.h5,https://www.dropbox.com/s/95vmmlci5x3acar/mse_model.h5?dl=0
