@@ -2,7 +2,9 @@
 Runs tests for synrad model
 """
 import sys
-sys.path.append('/home/gridsan/groups/EarthIntelligence/datasets/SEVIR/')
+sys.path.append('src/')
+
+import argparse
 import numpy as np
 import tensorflow as tf
 import pandas as pd
@@ -15,6 +17,18 @@ from metrics import probability_of_detection,success_rate
 from metrics.histogram import compute_histogram,score_histogram
 
 from readers.synrad_reader import read_data
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test_data', type=str, default='mse',help='Test data .h5 file')
+    parser.add_argument('--model', type=str, help='Pretrained model to test')
+    parser.add_argument('--output', type=str, help='Name of output .csv file',default='synrad_test_output.csv')  
+    parser.add_argument('--batch_size', type=int, help='batch size for testing', default=32)
+    parser.add_argument('--num_test', type=int, help='number of testing samples to use (None = all samples)', default=None)
+    args, unknown = parser.parse_known_args()
+
+    return args
+
 
 def ssim(y_true,y_pred,maxVal,**kwargs):
     yt=tf.convert_to_tensor(y_true.astype(np.uint8))
@@ -64,13 +78,15 @@ def run_histogram(y_true, y_pred, batch_size=1000,bins=range(255)):
 
 
 def main():
-    model_file      = sys.argv[1]
-    test_data_file  = sys.argv[2]
-    output_csv_file = sys.argv[3]
+    args = get_args()
+    model_file      = args.model
+    test_data_file  = args.test_data
+    output_csv_file = args.output
+
     print('Loading model')
     model = tf.keras.models.load_model(model_file,compile=False,custom_objects={"tf": tf})
     print('Loading test data')
-    x_test,y_test = read_data(test_data_file,0,1)
+    x_test,y_test = read_data(test_data_file,end=args.num_test)
     print('Applying model to test data')
     y_pred = model.predict([x_test[k] for k in ['ir069','ir107','lght']],batch_size=64)
     if isinstance(y_pred,(list,)):
@@ -91,22 +107,6 @@ def main():
         test_scores['sucr%d' % t] = 1-scores[t]['far']
         test_scores['csi%d' % t] = scores[t]['csi']
         test_scores['bias%d' % t] = scores[t]['bias']  
-
-    """
-    test_scores['pod16'] = run_metric(probability_of_detection, 16, y_test['vil'], y_pred, 64)
-    test_scores['pod74'] = run_metric(probability_of_detection, 74, y_test['vil'], y_pred, 64)
-    test_scores['pod133'] = run_metric(probability_of_detection, 133, y_test['vil'], y_pred, 64)
-    test_scores['pod160'] = run_metric(probability_of_detection, 160, y_test['vil'], y_pred, 64)
-    test_scores['pod181'] = run_metric(probability_of_detection, 181, y_test['vil'], y_pred, 64)
-    test_scores['pod219'] = run_metric(probability_of_detection, 219, y_test['vil'], y_pred, 64)
-
-    test_scores['sucr16'] = run_metric(success_rate, 16, y_test['vil'], y_pred, 64)
-    test_scores['sucr74'] = run_metric(success_rate, 74, y_test['vil'], y_pred, 64)
-    test_scores['sucr133'] = run_metric(success_rate, 133, y_test['vil'], y_pred, 64)
-    test_scores['sucr160'] = run_metric(success_rate, 160, y_test['vil'], y_pred, 64)
-    test_scores['sucr181'] = run_metric(success_rate, 181, y_test['vil'], y_pred, 64)
-    test_scores['sucr219'] = run_metric(success_rate, 219, y_test['vil'], y_pred, 64)
-    """
 
     df = pd.DataFrame({k:[v] for k,v in test_scores.items()})
     df.to_csv(output_csv_file)

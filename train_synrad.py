@@ -113,7 +113,7 @@ def get_model(args):
     model = models.Model(inputs=inputs, outputs=len(loss_fn)*[outputs])
 
     # create optimizer
-    opt = tf.keras.optimizers.Adam()
+    opt = tf.keras.optimizers.Adam(lr=float(args.lr))
     logging.info('compiling model')
     model.compile(optimizer=opt,
                   loss_weights=loss_weights,
