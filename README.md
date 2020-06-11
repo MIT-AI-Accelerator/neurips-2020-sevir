@@ -93,6 +93,8 @@ python train_nowcast.py   --num_train 1024  --nepochs 25  --batch_size 4 --loss_
 python train_nowcast.py   --num_train 1024  --nepochs 25  --batch_size 32 --loss_fn  cgan  --logdir logs/mse_`date +yymmddHHMMSS`
 ```
 
+Each of these will write several files into the date-stamped directory in `logs/`, including tracking of metrics, and a model saved after each epoch.  Run `python train_nowcast.py -h` for additional input parameters that can be specified. 
+
 ### Training `synrad`
 
 To train `synrad`, make sure the `synrad_training.h5` file is created using the previous step above.  Below we set `num_train` to be only 10,000, but this should be increased for better results.  There are three choices of loss functions configured:  
