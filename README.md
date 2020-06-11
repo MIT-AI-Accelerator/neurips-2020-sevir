@@ -17,7 +17,7 @@ To visualize results with statelines as is done in the paper, a geospatial plott
 
 ## Downloading pretrained models
 
-To Download the models trained in the paper, run the following
+To download the models trained in the paper, run the following
 
 ```
 cd models/
