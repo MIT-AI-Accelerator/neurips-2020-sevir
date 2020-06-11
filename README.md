@@ -83,6 +83,10 @@ python train_nowcast.py   --num_train 1024  --nepochs 25  --batch_size 4 --loss_
 python train_nowcast.py   --num_train 1024  --nepochs 25  --batch_size 4 --loss_fn  mse+vgg  --logdir logs/mse_`date +yymmddHHMMSS`
 ```
 
+#### Conditional GAN Loss:
+```
+python train_nowcast.py   --num_train 1024  --nepochs 25  --batch_size 32 --loss_fn  cgan  --logdir logs/mse_`date +yymmddHHMMSS`
+```
 
 ### Training `synrad`
 
