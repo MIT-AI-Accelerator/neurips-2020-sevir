@@ -30,10 +30,42 @@ def get_args():
     parser.add_argument('--output', type=str, help='Name of output .csv file',default='synrad_test_output.csv')  
     parser.add_argument('--batch_size', type=int, help='batch size for testing', default=32)
     parser.add_argument('--num_test', type=int, help='number of testing samples to use (None = all samples)', default=None)
+    parser.add_argument('--crop', type=int, help='crops this many pixels along edge before scoring', default=0)
     args, unknown = parser.parse_known_args()
 
     return args
 
+
+# Optical flow model using rainy motion library
+norm = {'scale':47.54,'shift':33.44}
+class OpticalFlow:
+    def __init__(self,n_out=12):
+        self.n_out=n_out
+    def fit(self,X,y):
+        # Doesn't need a fit
+        pass
+    def predict(self,X):
+        """
+        To make compatible with the CNNs that were trained, we assume data is input scaled.
+        Data is unscaled to [0-255] before being passed to Dense(), and then rescaled back.
+        """
+        y_pred = np.zeros((X.shape[0],X.shape[1],X.shape[2],self.n_out),dtype=np.float32)
+        to_input = np.transpose(X, [0, 3, 1, 2]) # rainy motion expects [T, L, W]
+        
+        # Run optical flow on each sample
+        from rainymotion.models import Dense
+        model = Dense()
+        # keep rainymotion defaults
+        model.lead_steps = self.n_out
+        model.of_method = "DIS"
+        model.direction = "backward"
+        model.advection = "constant-vector"
+        model.interpolation = "idw"
+        for x in range(to_input.shape[0]):
+            model.input_data = to_input[x]*norm['scale']+norm['shift']
+            to_output = model.run()
+            y_pred[x] = np.transpose(to_output, [1, 2, 0]) # back to [L,W,T]
+        return (y_pred-norm['shift'])/norm['scale']
 
 def ssim(y_true,y_pred,maxVal,**kwargs):
     yt=tf.convert_to_tensor(y_true.astype(np.uint8))
@@ -83,6 +115,7 @@ def main():
     model_file      = args.model
     test_data_file  = args.test_data
     output_csv_file = args.output
+    crop            = args.crop
 
     print('get data')
     x_test, y_test, _, _ = get_data(args.test_data, end=args.num_test, pct_validation=0)
@@ -97,10 +130,18 @@ def main():
         y_pred = np.concatenate(12*[x_test], axis=-1) 
         x_test = None # just to release memory ...
         print(f'persistence data : {y_pred.shape}')
+    elif args.model=='optflow':
+        print('Using optical flow model')
+        of=OpticalFlow()
+        y_pred=of.predict(x_test)
+        x_test = None # just to release memory ...
+        y_pred = y_pred*norm['scale']+norm['shift']
+        print(f'y_pred : {y_pred.shape}')
     else:
         print('loading model')
         model = tf.keras.models.load_model(model_file,compile=False,custom_objects={"tf": tf})
-        y_pred = model.predict(x_test, batch_size=32, verbose=2)
+        y_pred = model.predict(x_test, batch_size=16, verbose=2)
+        x_test = None # just to release memory ...
         # scale predictions back to original scale and mean
         if type(y_pred) == list:
             y_pred = y_pred[0]
@@ -113,14 +154,16 @@ def main():
     model = lpips.PerceptualLoss(model='net-lin', net='alex', use_gpu=False)#True, gpu_ids=[1])
     for lead in tqdm(range(12)):
         test_scores={}
-    
-        yt = y_test[...,lead:lead+1] # truth data
-        yp = y_pred[...,lead:lead+1] # predictions have been scaled earlier
-        
+        if crop > 0: 
+            yt = y_test[:,crop:-crop,crop:-crop,lead:lead+1] # truth data
+            yp = y_pred[:,crop:-crop,crop:-crop,lead:lead+1] # predictions have been scaled earlier
+        else:
+            yt = y_test[...,lead:lead+1] # truth data
+            yp = y_pred[...,lead:lead+1] # predictions have been scaled earlier
         test_scores['ssim'] = run_metric(ssim, [255], yt, yp, batch_size=32)
         test_scores['mse'] = run_metric(MSE, 255, yt, yp, batch_size=32)
         test_scores['mae'] = run_metric(MAE, 255, yt, yp, batch_size=32)
-        #test_scores['lpips'] = get_lpips(model,yp,yt,batch_size=32,n_out=1)[0] # because this is scalar
+        test_scores['lpips'] = get_lpips(model,yp,yt,batch_size=32,n_out=1)[0] # because this is scalar
         
         H,rb,cb=run_histogram(yt,yp,bins=range(255))
         thresholds = [16,74,133,160,181,219]

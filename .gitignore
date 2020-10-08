@@ -1,7 +1,7 @@
 *~
 *.pyc
 *.csv
-*.log
+*.log*
 *.h5
 *.hdf5
 log
