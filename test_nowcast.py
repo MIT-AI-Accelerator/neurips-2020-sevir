@@ -19,7 +19,7 @@ from losses import lpips
 from metrics import probability_of_detection,success_rate
 from metrics.lpips_metric import get_lpips
 
-from readers.nowcast_reader import get_data
+from readers.nowcast_reader import get_data, read_data
 
 norm = {'scale':47.54,'shift':33.44}
 
@@ -36,36 +36,35 @@ def get_args():
     return args
 
 
-# Optical flow model using rainy motion library
-norm = {'scale':47.54,'shift':33.44}
-class OpticalFlow:
-    def __init__(self,n_out=12):
-        self.n_out=n_out
-    def fit(self,X,y):
-        # Doesn't need a fit
-        pass
-    def predict(self,X):
-        """
-        To make compatible with the CNNs that were trained, we assume data is input scaled.
-        Data is unscaled to [0-255] before being passed to Dense(), and then rescaled back.
-        """
-        y_pred = np.zeros((X.shape[0],X.shape[1],X.shape[2],self.n_out),dtype=np.float32)
-        to_input = np.transpose(X, [0, 3, 1, 2]) # rainy motion expects [T, L, W]
-        
-        # Run optical flow on each sample
-        from rainymotion.models import Dense
-        model = Dense()
-        # keep rainymotion defaults
-        model.lead_steps = self.n_out
-        model.of_method = "DIS"
-        model.direction = "backward"
-        model.advection = "constant-vector"
-        model.interpolation = "idw"
-        for x in range(to_input.shape[0]):
-            model.input_data = to_input[x]*norm['scale']+norm['shift']
-            to_output = model.run()
-            y_pred[x] = np.transpose(to_output, [1, 2, 0]) # back to [L,W,T]
-        return (y_pred-norm['shift'])/norm['scale']
+def run_model( x_test, args ):
+    if args.model=='pers':
+        print('Using persistence model')
+        # only keep the data for persistence
+        x_test = x_test[...,11:12] 
+        x_test = x_test*norm['scale']+norm['shift']
+        y_pred = np.concatenate(12*[x_test], axis=-1) 
+        x_test = None # just to release memory ...
+        print(f'persistence data : {y_pred.shape}')
+    elif args.model=='optflow':
+        print('Using optical flow model')
+        from src.model.benchmarks import OpticalFlow
+        of=OpticalFlow()
+        y_pred=of.predict(x_test)
+        x_test = None # just to release memory ...
+        y_pred = y_pred*norm['scale']+norm['shift']
+        print(f'y_pred : {y_pred.shape}')
+    else:
+        print('loading model')
+        model = tf.keras.models.load_model(model_file,compile=False,custom_objects={"tf": tf})
+        y_pred = model.predict(x_test, batch_size=16, verbose=2)
+        x_test = None # just to release memory ...
+        # scale predictions back to original scale and mean
+        if type(y_pred) == list:
+            y_pred = y_pred[0]
+        y_pred = y_pred*norm['scale']+norm['shift']
+        print(f'y_pred : {y_pred.shape}')
+    return y_pred
+
 
 def ssim(y_true,y_pred,maxVal,**kwargs):
     yt=tf.convert_to_tensor(y_true.astype(np.uint8))
@@ -117,37 +116,25 @@ def main():
     output_csv_file = args.output
     crop            = args.crop
 
-    print('get data')
-    x_test, y_test, _, _ = get_data(args.test_data, end=args.num_test, pct_validation=0)
-    print(f'x_test : {x_test.shape}')
-    print('predict')
-
-    if args.model=='pers':
-        print('Using persistence model')
-        # only keep the data for persistence
-        x_test = x_test[...,11:12] 
-        x_test = x_test*norm['scale']+norm['shift']
-        y_pred = np.concatenate(12*[x_test], axis=-1) 
-        x_test = None # just to release memory ...
-        print(f'persistence data : {y_pred.shape}')
-    elif args.model=='optflow':
-        print('Using optical flow model')
-        of=OpticalFlow()
-        y_pred=of.predict(x_test)
-        x_test = None # just to release memory ...
-        y_pred = y_pred*norm['scale']+norm['shift']
-        print(f'y_pred : {y_pred.shape}')
-    else:
-        print('loading model')
-        model = tf.keras.models.load_model(model_file,compile=False,custom_objects={"tf": tf})
-        y_pred = model.predict(x_test, batch_size=16, verbose=2)
-        x_test = None # just to release memory ...
-        # scale predictions back to original scale and mean
-        if type(y_pred) == list:
-            y_pred = y_pred[0]
-        y_pred = y_pred*norm['scale']+norm['shift']
-        print(f'y_pred : {y_pred.shape}')
-    y_test = y_test*norm['scale']+norm['shift']
+    SIZE=5 # spilt test data into this many chunks to avoid running out of memory
+    y_pred = []
+    y_test = []
+    for i in range(SIZE):
+        #x_test, y_test, _, _ = get_data(args.test_data, end=args.num_test, pct_validation=0)
+        print(f'get data {i+1} of {SIZE}')
+        x_test_i,y_test_i = read_data(test_data_file, rank=i, size=SIZE, end=args.num_test, dtype=np.float32)
+        print(f'x_test {i+1} of {SIZE} : {x_test_i.shape}')
+        y_test_i = y_test_i*norm['scale']+norm['shift'] # unscale
+        print('predict')
+        y_pred_i = run_model( x_test_i, args )
+        y_test.append(y_test_i)
+        y_pred.append(y_pred_i)
+        x_test_i=None
+    y_pred = np.concatenate(y_pred,axis=0)
+    y_test = np.concatenate(y_test,axis=0)
+    y_test_i=None
+    y_pred_i=None
+    
     # calculate metrics in batches    
     test_scores_lead = {}
     # Loop over 12 lead times
