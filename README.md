@@ -33,7 +33,7 @@ See the `notebooks` directory for how to apply these models to some sample test 
 
 ## Downloading SEVIR
 
-The SEVIR data is available online.   Link removed from this README to maintain anonymity during review process.
+The SEVIR data is available at [https://registry.opendata.aws/sevir/](https://registry.opendata.aws/sevir/)
 
 
 ### Extracting training/testing datasets
