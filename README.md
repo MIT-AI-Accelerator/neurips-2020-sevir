@@ -22,6 +22,10 @@ To visualize results with statelines as is done in the paper, a geospatial plott
 * `basemap`
 * `cartopy`
 
+To run the `rainymotion` benchmark, you'll also need to install this module.  See [https://rainymotion.readthedocs.io/en/latest/](https://rainymotion.readthedocs.io/en/latest/)
+
+
+
 ## Downloading pretrained models
 
 To download the models trained in the paper, run the following
