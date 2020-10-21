@@ -1,6 +1,8 @@
 # NeurIPS 2020 SEVIR
 Code for SEVIR paper submitted to NeurIPS 2020
 
+NOTE:  If you downloaded this repo from the NeurIPS supplemental material, please check [https://github.com/MIT-AI-Accelerator/neurips-2020-sevir/](https://github.com/MIT-AI-Accelerator/neurips-2020-sevir/) for updates.
+
 
 ## Requirements
 
@@ -33,8 +35,13 @@ See the `notebooks` directory for how to apply these models to some sample test 
 
 ## Downloading SEVIR
 
-The SEVIR data is available at [https://registry.opendata.aws/sevir/](https://registry.opendata.aws/sevir/)
+Download information and additional resources for SEVIR data are available at [https://registry.opendata.aws/sevir/](https://registry.opendata.aws/sevir/).  
 
+To download, install AWS CLI, and download all of SEVIR (~1TB) to your current directory run
+
+```
+aws s3 sync --no-sign-request s3://sevir .
+```
 
 ### Extracting training/testing datasets
 
