@@ -1,7 +1,5 @@
 # NeurIPS 2020 SEVIR
-Code for SEVIR paper submitted to NeurIPS 2020
-
-NOTE:  If you downloaded this repo from the NeurIPS supplemental material, please check [https://github.com/MIT-AI-Accelerator/neurips-2020-sevir/](https://github.com/MIT-AI-Accelerator/neurips-2020-sevir/) for updates.
+Code for paper: SEVIR : A Storm Event Imagery Dataset for Deep Learning Applications in Radar and Satellite Meteorology
 
 
 ## Requirements
