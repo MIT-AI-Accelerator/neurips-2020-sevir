@@ -1,5 +1,5 @@
 # NeurIPS 2020 SEVIR
-Code for SEVIR paper submitted to NeurIPS 2020
+Code for paper: SEVIR : A Storm Event Imagery Dataset for Deep Learning Applications in Radar and Satellite Meteorology
 
 
 ## Requirements
@@ -20,6 +20,10 @@ To visualize results with statelines as is done in the paper, a geospatial plott
 * `basemap`
 * `cartopy`
 
+To run the `rainymotion` benchmark, you'll also need to install this module.  See [https://rainymotion.readthedocs.io/en/latest/](https://rainymotion.readthedocs.io/en/latest/)
+
+
+
 ## Downloading pretrained models
 
 To download the models trained in the paper, run the following
@@ -33,8 +37,13 @@ See the `notebooks` directory for how to apply these models to some sample test 
 
 ## Downloading SEVIR
 
-The SEVIR data is available online.   Link removed from this README to maintain anonymity during review process.
+Download information and additional resources for SEVIR data are available at [https://registry.opendata.aws/sevir/](https://registry.opendata.aws/sevir/).  
 
+To download, install AWS CLI, and download all of SEVIR (~1TB) to your current directory run
+
+```
+aws s3 sync --no-sign-request s3://sevir .
+```
 
 ### Extracting training/testing datasets
 
